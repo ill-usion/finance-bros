@@ -1,0 +1,15 @@
+python-dotenv
+pandas
+ipykernel
+openpyxl
+pyyaml
+langchain
+langchain-openai
+langchain-chroma
+langchain-localai
+langchain-classic
+langchain-community
+langgraph
+langgraph-checkpoint
+Flask
+timesfm
