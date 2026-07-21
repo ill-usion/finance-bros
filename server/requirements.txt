@@ -13,3 +13,4 @@ langgraph
 langgraph-checkpoint
 Flask
 timesfm
+pydantic
