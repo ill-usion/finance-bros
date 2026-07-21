@@ -5,6 +5,7 @@ openpyxl
 pyyaml
 langchain
 langchain-openai
+langchain-google-genai
 langchain-chroma
 langchain-localai
 langchain-classic
