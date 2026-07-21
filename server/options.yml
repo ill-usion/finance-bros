@@ -1,0 +1,2 @@
+model: "google/gemma-4-e4b"
+base_url: "http://localhost:1234/v1"
