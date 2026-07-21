@@ -143,9 +143,9 @@ def make_extractor(
     temperature: float = 0.0,
 ) -> ReceiptExtractor:
     llm = init_chat_model(
-        model=options["model"],
+        model=options.get("model"),
         model_provider=os.getenv("LLM_PROVIDER"),
-        base_url=options["base_url"],
+        base_url=options.get("base_url"),
         api_key=os.getenv("LLM_API_KEY"),
         temperature=temperature,
     )
