@@ -13,5 +13,5 @@ langchain-community
 langgraph
 langgraph-checkpoint
 Flask
-timesfm
+timesfm[torch]
 pydantic
