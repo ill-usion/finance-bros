@@ -13,7 +13,7 @@ from langchain.chat_models import init_chat_model, BaseChatModel
 from pydantic import BaseModel, Field, ValidationError
 
 sys.path.append("..")
-from server.utils import load_options
+from server.utils import load_options, disable_thinking
 
 load_dotenv()
 options= load_options("options.yml")
@@ -87,6 +87,7 @@ Return ONLY valid JSON.
 
 class ReceiptExtractor:
     def __init__(self, llm: BaseChatModel):
+        self.llm = disable_thinking(llm)
         self.llm = llm.with_structured_output(Receipt)
 
     @staticmethod
@@ -122,7 +123,7 @@ class ReceiptExtractor:
         msg = HumanMessage(
             content=[
                 {
-                    "type": "text",
+                    "type": "system",
                     "text": SYSTEM_PROMPT,
                 },
                 {
