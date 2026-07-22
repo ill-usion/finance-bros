@@ -87,8 +87,7 @@ Return ONLY valid JSON.
 
 class ReceiptExtractor:
     def __init__(self, llm: BaseChatModel):
-        self.llm = disable_thinking(llm)
-        self.llm = llm.with_structured_output(Receipt)
+        self.llm = disable_thinking(llm).with_structured_output(Receipt)
 
     @staticmethod
     def _encode_image(

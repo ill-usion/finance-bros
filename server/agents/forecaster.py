@@ -1,7 +1,7 @@
 import numpy as np
 from timesfm import TimesFM_2p5_200M_torch, ForecastConfig
 
-MIN_FORECAST_DAYS = 14
+MIN_FORECAST_DAYS = 28
 
 model = TimesFM_2p5_200M_torch.from_pretrained("google/timesfm-2.5-200m-pytorch")
 model.compile(

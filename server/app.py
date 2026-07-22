@@ -1,19 +1,21 @@
 import json
 import asyncio
+from typing import Any
 from uuid import uuid4
 from collections.abc import Generator
 from agents import financial_analyst, receipt_extractor, statement_extractor, forecaster
 
 from flask import Flask, request, session, g, make_response, render_template, Response
-
+from flask_cors import CORS
 
 receipt_ext = receipt_extractor.make_extractor()
 statement_ext = statement_extractor.make_extractor()
-financial_analyst = financial_analyst.make_agent()
+financial_analyst_agent = financial_analyst.make_agent()
 
 app = Flask(__name__)
 app.secret_key = "<CHANGE THIS>"
 app.template_folder = 'static'
+CORS(app)
 
 def __iter_over_async(async_generator) -> Generator[dict, None, None]:
     """
@@ -138,9 +140,12 @@ def forecast_spending():
 
 
 @app.route("/spending-analysis", methods=['POST'])
-async def spending_analysis():
+def spending_analysis():
     """
     Endpoint to perform spending analysis based on the provided financial data.
+
+    Streams status updates (parsing -> forecasting -> reviewing) followed by the
+    final result as Server-Sent Events so the frontend can show progress.
     """
     data = request.form
     required_fields = ["monthly_income", "weekly_budget", "saving_percentage"]
@@ -148,22 +153,41 @@ async def spending_analysis():
     for field in required_fields:
         if field not in data:
             return {"error": f"Missing required field: {field}"}, 400
-    
+
     if 'file' not in request.files:
         return {"error": "No file part in the request"}, 400
 
-    statement_file = request.files['file']
+    # Read the statement bytes now, while the request context is still active.
+    statement_bytes = request.files['file'].read()
 
-    try:
-        analysis_result = await financial_analyst.invoke(
-            monthly_income=float(data["monthly_income"]),
-            weekly_budget=float(data["weekly_budget"]),
-            saving_percentage=float(data["saving_percentage"]),
-            statement=statement_file,
-        )
-        return analysis_result.model_dump(), 200
-    except Exception as e:
-        return {"error": str(e)}, 500
+    monthly_income = float(data["monthly_income"])
+    weekly_budget = float(data["weekly_budget"])
+    saving_percentage = float(data["saving_percentage"])
+    language = data.get("language", "English")
+
+    def event_stream() -> Generator[str, None, None]:
+        try:
+            for update in __iter_over_async(
+                financial_analyst_agent.astream(
+                    monthly_income=monthly_income,
+                    weekly_budget=weekly_budget,
+                    saving_percentage=saving_percentage,
+                    statement=statement_bytes,
+                    language=language,
+                )
+            ):
+                if update.get("status") == "done":
+                    payload = {
+                        "status": "done",
+                        "result": update["result"].model_dump(),
+                    }
+                else:
+                    payload = update
+                yield f"data: {json.dumps(payload)}\n\n"
+        except Exception as e:
+            yield f"data: {json.dumps({'status': 'error', 'error': str(e)})}\n\n"
+
+    return Response(event_stream(), mimetype="text/event-stream")
 
 
 if __name__ == '__main__':

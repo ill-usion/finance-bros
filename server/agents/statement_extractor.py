@@ -9,6 +9,8 @@ from typing import BinaryIO
 
 import fitz
 
+from concurrent.futures import ThreadPoolExecutor
+
 from dotenv import load_dotenv
 from langchain_core.messages import HumanMessage
 from langchain.chat_models import init_chat_model, BaseChatModel
@@ -55,7 +57,7 @@ Rules:
 class BankStatementExtractor:
 
     def __init__(self, llm: BaseChatModel):
-        self.chain = llm.with_structured_output(Statement)
+        self.chain = disable_thinking(llm).with_structured_output(Statement)
 
     @staticmethod
     def _encode_image(data: bytes):
@@ -121,9 +123,16 @@ class BankStatementExtractor:
 
                 pages = self._pdf_to_images(data)
 
-                for page in pages:
-                    result = self._extract_page(page)
-                    transactions.extend(result)
+                # Extract pages concurrently. ThreadPoolExecutor.map preserves
+                # input order, so transactions stay in document order and data
+                # integrity is not affected; only wall-clock time improves.
+                if len(pages) > 1:
+                    with ThreadPoolExecutor(max_workers=min(len(pages), 8)) as pool:
+                        for result in pool.map(self._extract_page, pages):
+                            transactions.extend(result)
+                else:
+                    for page in pages:
+                        transactions.extend(self._extract_page(page))
 
             # image
             else:
