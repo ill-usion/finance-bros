@@ -13,6 +13,7 @@ langchain-community
 langgraph
 langgraph-checkpoint
 Flask
+Flask[async]
 timesfm[torch]
 pydantic
 pymupdf
