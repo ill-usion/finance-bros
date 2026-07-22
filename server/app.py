@@ -120,7 +120,7 @@ def extract_statement():
         return {"error": str(e)}, 500
 
 @app.route("/forecast-spending", methods=['POST'])
-async def forecast_spending():
+def forecast_spending():
     """
     Endpoint to forecast spending based on the provided daily spendings.
     """
@@ -131,7 +131,7 @@ async def forecast_spending():
     daily_spendings = data['daily_spendings']
 
     try:
-        forecast_result = forecaster.predict_week_spendings(daily_spendings)
+        forecast_result = forecaster.predict_spendings(daily_spendings)
         return {"forecast": forecast_result}, 200
     except Exception as e:
         return {"error": str(e)}, 500
@@ -153,13 +153,13 @@ async def spending_analysis():
         return {"error": "No file part in the request"}, 400
 
     statement_file = request.files['file']
-    print(statement_file)
+
     try:
         analysis_result = await financial_analyst.invoke(
-            monthly_income=data["monthly_income"],
-            weekly_budget=data["weekly_budget"],
-            saving_percentage=data["saving_percentage"],
-            statement=statement_file
+            monthly_income=float(data["monthly_income"]),
+            weekly_budget=float(data["weekly_budget"]),
+            saving_percentage=float(data["saving_percentage"]),
+            statement=statement_file,
         )
         return analysis_result.model_dump(), 200
     except Exception as e:
