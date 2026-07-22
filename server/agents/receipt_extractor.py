@@ -123,7 +123,7 @@ class ReceiptExtractor:
         msg = HumanMessage(
             content=[
                 {
-                    "type": "system",
+                    "type": "text",
                     "text": SYSTEM_PROMPT,
                 },
                 {
