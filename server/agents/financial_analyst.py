@@ -6,7 +6,7 @@ import asyncio
 import agents.statement_extractor
 from dotenv import load_dotenv
 
-from langchain_core.messages import HumanMessage
+from langchain_core.messages import HumanMessage, SystemMessage
 from langchain.chat_models import init_chat_model, BaseChatModel
 from pydantic import BaseModel, Field, ValidationError
 
@@ -19,16 +19,6 @@ load_dotenv()
 options= load_options("options.yml")
 
 
-class Transaction(BaseModel):
-    datetime: str
-    total_amount: str
-
-
-class SpendingForecast(BaseModel):
-    datetime: str
-    predicted_amount: float
-
-
 class SpendingReview(BaseModel):
     score: int = Field(ge=0, le=100)
     score_reasoning: str
@@ -39,11 +29,11 @@ class FinanceAnalysis(BaseModel):
     score_reasoning: str
     suggested_weekly_budget: float
 
-    bank_statement: list[Transaction]
-    forecast: list[SpendingForecast]
+    bank_statement: list[statement_extractor.Transaction]
+    forecast: list[float]
 
 
-ANALYST_PROMPT = """
+ANALYSIS_PROMPT = """
 You are a university student's personal financial advisor.
 
 You will receive
@@ -52,7 +42,6 @@ You will receive
 - current weekly budget
 - desired saving percentage
 - bank statement
-- predicted spending for the next seven days
 
 Rate the student's spending behaviour.
 
@@ -94,7 +83,7 @@ class FinanceAnalysisAgent:
             llm.with_structured_output(SpendingReview)
         )
 
-    def accumulate_day_spendings(self, transactions: list[Transaction]) -> dict[str, float]:
+    def accumulate_day_spendings(self, transactions: list[statement_extractor.Transaction]) -> dict[str, float]:
         """
         Accumulate spendings for each day.
         """
@@ -121,8 +110,7 @@ class FinanceAnalysisAgent:
         monthly_income: float,
         weekly_budget: float,
         saving_percentage: float, 
-        transactions: list[Transaction], 
-        forecast: list[SpendingForecast]
+        transactions: list[statement_extractor.Transaction], 
     ) -> list[HumanMessage]:
         return [
                 SystemMessage(
@@ -144,9 +132,6 @@ class FinanceAnalysisAgent:
                     Bank transactions:
                     {transactions}
 
-                    Next 7 day spending forecast:
-                    {forecast}
-
                     Evaluate this student's financial behavior.
                     """
                 )
@@ -167,7 +152,7 @@ class FinanceAnalysisAgent:
         # Step 2
         daily_spendings = self.accumulate_day_spendings(transactions)
         forecast_task = asyncio.to_thread(
-            forecaster.predict_week_spendings, [v for k, v in daily_spendings.items()]
+            forecaster.predict_spendings, [v for k, v in daily_spendings.items()]
         )
 
         # Step 3
@@ -177,7 +162,7 @@ class FinanceAnalysisAgent:
                 monthly_income=monthly_income,
                 weekly_budget=weekly_budget,
                 saving_percentage=saving_percentage,
-                transactions=daily_spendings,
+                transactions=transactions,
             )
         )
 
