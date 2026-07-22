@@ -1,0 +1,87 @@
+/* language pick */
+.flag { width: 42px; height: 21px; border-radius: 4px; box-shadow: var(--shadow-sm); flex: none; }
+.lang-card {
+  display: flex; align-items: center; gap: 14px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r-md); padding: 16px 18px; font-size: 18px; font-weight: 600;
+  box-shadow: var(--shadow-sm); transition: transform .12s;
+}
+.lang-card:active { transform: scale(0.98); }
+
+/* stat cards */
+.stat { flex: 1; padding: 14px 16px; }
+.stat__label { font-size: 12px; color: var(--text-dim); font-weight: 600; margin-bottom: 4px; }
+
+/* guide */
+.guide { display: flex; flex-direction: column; gap: 6px; }
+.guide__num { display: flex; align-items: baseline; gap: 4px; font-family: var(--font-display); font-weight: 800; font-size: 26px; color: var(--accent); }
+.guide__num span { font-size: 15px; color: var(--text-dim); font-weight: 600; }
+.guide__art { display: flex; }
+.guide__t { font-family: var(--font-display); font-size: 20px; margin: 6px 0 0; }
+.guide__dots { display: flex; gap: 6px; }
+.dot { width: 7px; height: 7px; border-radius: 50%; background: var(--border); transition: all .2s; }
+.dot--on { background: var(--accent); width: 20px; border-radius: 99px; }
+
+/* processing pulse */
+.pulse { width: 12px; height: 12px; border-radius: 50%; background: var(--accent); animation: beat 1s infinite; flex: none; }
+.pulse--done { background: var(--good); animation: none; }
+@keyframes beat { 0%,100% { opacity: 1; transform: scale(1) } 50% { opacity: .4; transform: scale(.8) } }
+
+/* score */
+.score { display: flex; align-items: center; gap: 16px; }
+.score__ring {
+  width: 66px; height: 66px; border-radius: 50%; flex: none;
+  display: grid; place-items: center; position: relative;
+}
+.score__ring::after {
+  content: ""; position: absolute; inset: 6px; border-radius: 50%; background: var(--surface);
+}
+.score__ring span { position: relative; z-index: 1; font-family: var(--font-display); font-weight: 800; font-size: 22px; }
+
+/* categories list */
+.catlist { display: flex; flex-direction: column; gap: 14px; overflow-y: auto; }
+
+/* quick actions */
+.quick { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.quick__btn {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r-sm); padding: 12px 4px; font-size: 11px; font-weight: 600;
+  color: var(--text); text-align: center; line-height: 1.2; transition: transform .1s;
+}
+.quick__btn:active { transform: scale(0.96); }
+.quick__ic { font-size: 22px; }
+
+/* navbar */
+.navbar { display: flex; gap: 8px; }
+.navbar__item {
+  flex: 1; background: var(--surface-2); border-radius: var(--r-sm);
+  padding: 11px 6px; font-size: 12px; font-weight: 600; color: var(--text);
+}
+
+.icon-btn {
+  background: var(--surface-2); border-radius: 99px; padding: 8px 14px;
+  font-size: 13px; font-weight: 600; color: var(--text);
+}
+
+/* transactions */
+.txn { display: flex; align-items: center; gap: 10px; padding: 12px 12px; border-bottom: 1px solid var(--border); }
+.txn:last-child { border-bottom: none; }
+.txn__main { flex: 1; min-width: 0; }
+.txn__prod { font-weight: 600; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.txn__meta { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+.txn__actions { display: flex; gap: 4px; }
+.txn__act { padding: 6px 9px; border-radius: 8px; background: var(--surface-2); font-size: 14px; }
+.txn__act--del { color: var(--accent); }
+
+/* category picker chips */
+.catpick { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.catpick__chip {
+  padding: 9px 14px; border-radius: 99px; border: 1px solid var(--border);
+  background: var(--surface); font-size: 14px; font-weight: 600; color: var(--text);
+}
+.catpick__chip--on { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+/* splash */
+.splash { flex: 1; display: grid; place-items: center; }
+.splash__mark { font-family: var(--font-display); font-weight: 800; font-size: 44px; color: var(--accent); animation: beat 1.4s infinite; }

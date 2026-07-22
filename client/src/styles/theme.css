@@ -1,0 +1,191 @@
+@import url("https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap");
+
+:root {
+  /* Palette — Omani identity, deliberately away from cream/terracotta defaults */
+  --ink: #1c1a17;
+  --sand-0: #fbf8f2;
+  --sand-1: #f3ede1;
+  --sand-2: #e7ddca;
+  --line: #ddd2ba;
+
+  --red: #7b1e23;      /* flag red — primary anchor */
+  --red-soft: #a23a3f;
+  --teal: #2f7d6b;     /* saved / positive */
+  --teal-soft: #eaf3f0;
+  --amber: #c8842b;    /* warning */
+  --amber-soft: #f8ecd7;
+
+  --bg: var(--sand-0);
+  --surface: #ffffff;
+  --surface-2: var(--sand-1);
+  --text: var(--ink);
+  --text-dim: #6d6455;
+  --border: var(--line);
+  --accent: var(--red);
+  --good: var(--teal);
+  --good-soft: var(--teal-soft);
+  --warn: var(--amber);
+  --warn-soft: var(--amber-soft);
+
+  --r-sm: 12px;
+  --r-md: 18px;
+  --r-lg: 26px;
+  --shadow: 0 8px 30px rgba(40, 30, 15, 0.08);
+  --shadow-sm: 0 2px 10px rgba(40, 30, 15, 0.06);
+
+  --font-display: "Sora", "IBM Plex Sans Arabic", system-ui, sans-serif;
+  --font-body: "Sora", "IBM Plex Sans Arabic", system-ui, sans-serif;
+
+  --safe-b: env(safe-area-inset-bottom, 0px);
+}
+
+html[lang="ar"] {
+  --font-display: "IBM Plex Sans Arabic", "Sora", system-ui, sans-serif;
+  --font-body: "IBM Plex Sans Arabic", "Sora", system-ui, sans-serif;
+}
+
+[data-theme="dark"] {
+  --ink: #f2ede3;
+  --bg: #16130f;
+  --surface: #1f1b16;
+  --surface-2: #241f19;
+  --text: #f2ede3;
+  --text-dim: #a89a83;
+  --border: #352d23;
+  --accent: #d9646b;
+  --good: #4fae97;
+  --good-soft: #16302a;
+  --warn: #e0a04e;
+  --warn-soft: #33280f;
+  --shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+  --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: inherit;
+}
+
+input {
+  font-family: inherit;
+}
+
+:focus-visible {
+  outline: 2.5px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+}
+
+/* App shell: fills viewport, no page scroll — screens manage their own layout */
+.app {
+  height: 100dvh;
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  background: var(--bg);
+}
+
+.screen {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: clamp(18px, 5vw, 28px);
+  gap: 16px;
+}
+
+.screen--pad-safe { padding-bottom: calc(18px + var(--safe-b)); }
+
+.eyebrow {
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  font-weight: 600;
+}
+
+html[lang="ar"] .eyebrow { letter-spacing: 0; }
+
+.title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(22px, 6vw, 30px);
+  line-height: 1.15;
+  margin: 0;
+}
+
+.subtitle {
+  color: var(--text-dim);
+  font-size: 15px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Primary button */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 15px 20px;
+  border-radius: var(--r-md);
+  font-weight: 600;
+  font-size: 16px;
+  transition: transform 0.12s ease, background 0.15s ease, opacity 0.15s;
+}
+.btn:active { transform: scale(0.98); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.btn--primary { background: var(--accent); color: #fff; }
+.btn--ghost { background: var(--surface-2); color: var(--text); }
+.btn--block { width: 100%; }
+
+.spacer { flex: 1; min-height: 0; }
+
+.row { display: flex; align-items: center; gap: 12px; }
+.between { justify-content: space-between; }
+
+/* fade/slide-in for screen transitions */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.rise { animation: rise 0.35s ease both; }
