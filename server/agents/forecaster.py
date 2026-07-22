@@ -1,6 +1,7 @@
 import numpy as np
 from timesfm import TimesFM_2p5_200M_torch, ForecastConfig
 
+MIN_FORECAST_DAYS = 14
 
 model = TimesFM_2p5_200M_torch.from_pretrained("google/timesfm-2.5-200m-pytorch")
 model.compile(
@@ -12,22 +13,23 @@ model.compile(
     )
 )
 
-def predict_week_spendings(spendings: list[float]) -> list[float]:
+def predict_spendings(spendings: list[float], horizon: int = 7) -> list[float]:
     """
     Predict the next 7 days of spendings based on the past spendings.
 
     Args:
         spendings (list[float]): A list of past month of spendings.
+        horizon (int): The number of days to forecast.
 
     Returns:
         list[float]: A list of predicted spendings for the next 7 days.
     """
-    if len(spendings) < 28:
-        raise ValueError("At least 28 days of spendings are required for prediction.")
+    if len(spendings) < MIN_FORECAST_DAYS:
+        raise ValueError(f"At least {MIN_FORECAST_DAYS} days of spendings are required for prediction.")
 
     input_data = np.array(spendings)
 
-    point_fc, quantile_fc = model.forecast(inputs=[input_data], horizon=7)
+    point_fc, quantile_fc = model.forecast(inputs=[input_data], horizon=horizon)
 
     return point_fc[0].tolist()
 
@@ -40,5 +42,5 @@ if __name__ == "__main__":
         11.40, 28.50, 6.20, 0.00, 19.30, 21.00, 88.10,
         13.00, 40.00
     ]
-    predicted_spendings = predict_week_spendings(past_spendings)
+    predicted_spendings = predict_spendings(past_spendings)
     print("Predicted spendings for the next week:", predicted_spendings)
