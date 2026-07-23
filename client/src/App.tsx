@@ -6,8 +6,7 @@ import { Home } from "./screens/Home";
 import { EditSpendings } from "./screens/EditSpendings";
 import { Settings } from "./screens/Settings";
 import { Guide } from "./screens/Guide";
-
-type Page = "home" | "edit" | "settings" | "guide";
+import { NavBar, type Page } from "./components/NavBar";
 
 export default function App() {
   const { ready, settings, profile } = useStore();
@@ -25,6 +24,7 @@ export default function App() {
   }
 
   const needsLang = !settings.onboarded && !langPicked;
+  const showNav = !needsLang && settings.onboarded && !!profile;
 
   let content;
   if (needsLang) {
@@ -32,14 +32,19 @@ export default function App() {
   } else if (!settings.onboarded || !profile) {
     content = <Onboarding />;
   } else if (page === "home") {
-    content = <Home go={(n) => setPage(n)} />;
+    content = <Home />;
   } else if (page === "edit") {
-    content = <EditSpendings back={() => setPage("home")} />;
+    content = <EditSpendings />;
   } else if (page === "settings") {
-    content = <Settings back={() => setPage("home")} />;
+    content = <Settings />;
   } else {
-    content = <Guide back={() => setPage("home")} />;
+    content = <Guide />;
   }
 
-  return <div className="app">{content}</div>;
+  return (
+    <div className="app">
+      {content}
+      {showNav && <NavBar page={page} go={setPage} />}
+    </div>
+  );
 }

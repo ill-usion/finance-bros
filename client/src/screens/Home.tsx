@@ -14,10 +14,9 @@ import {
 import { AddSpendSheet } from "./sheets/AddSpendSheet";
 import { ExtraIncomeSheet } from "./sheets/ExtraIncomeSheet";
 import { AdjustBudgetSheet } from "./sheets/AdjustBudgetSheet";
+import { IconCamera, IconImage, IconPlus, IconSettings } from "../components/Icons";
 
-type Nav = "edit" | "settings" | "guide";
-
-export function Home({ go }: { go: (n: Nav) => void }) {
+export function Home() {
   const { profile, spendings } = useStore();
   const t = useT();
   const [sheet, setSheet] = useState<null | "add" | "extra" | "adjust">(null);
@@ -55,7 +54,7 @@ export function Home({ go }: { go: (n: Nav) => void }) {
           </div>
         </div>
         <button className="icon-btn" aria-label={t("adjust_budget")} onClick={() => setSheet("adjust")}>
-          ⚙︎ {t("adjust_budget")}
+          <IconSettings size={15} /> {t("adjust_budget")}
         </button>
       </div>
 
@@ -85,27 +84,20 @@ export function Home({ go }: { go: (n: Nav) => void }) {
 
       <div className="spacer" />
 
-      {/* quick actions */}
+      {/* quick actions: scan receipt / from gallery / add spend */}
       <div className="quick">
         <button className="quick__btn" onClick={() => openAdd("receipt")}>
-          <span className="quick__ic">📷</span>{t("add_receipt")}
+          <IconCamera size={20} className="quick__ic" />
+          {t("add_receipt")}
         </button>
         <button className="quick__btn" onClick={() => openAdd("gallery")}>
-          <span className="quick__ic">🖼️</span>{t("add_gallery")}
+          <IconImage size={20} className="quick__ic" />
+          {t("add_gallery")}
         </button>
         <button className="quick__btn" onClick={() => openAdd("manual")}>
-          <span className="quick__ic">＋</span>{t("add_manual")}
+          <IconPlus size={20} className="quick__ic" />
+          {t("add_manual")}
         </button>
-        <button className="quick__btn" onClick={() => setSheet("extra")}>
-          <span className="quick__ic">💰</span>{t("extra_income")}
-        </button>
-      </div>
-
-      {/* nav bar */}
-      <div className="navbar">
-        <button className="navbar__item" onClick={() => go("edit")}>≣ {t("edit_spendings")}</button>
-        <button className="navbar__item" onClick={() => go("guide")}>？ {t("user_guide")}</button>
-        <button className="navbar__item" onClick={() => go("settings")}>⚙︎ {t("settings")}</button>
       </div>
 
       <AddSpendSheet open={sheet === "add"} source={addSource} onClose={() => setSheet(null)} />

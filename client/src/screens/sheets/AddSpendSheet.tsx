@@ -77,9 +77,17 @@ export function AddSpendSheet({
         hidden
         onChange={onFile}
       />
-      {busy && <p className="subtitle" style={{ textAlign: "center" }}>{t("analyzing")}</p>}
+      {busy ? (
+        <div className="analyzing">
+          <div className="analyzing__box">
+            <span className="pulse" />
+            <p className="analyzing__text">{t("analyzing")}</p>
+          </div>
+        </div>
+      ) : (
+        <NumPad value={amount} onChange={setAmount} />
+      )}
 
-      <NumPad value={amount} onChange={setAmount} />
 
       <div className="field" style={{ marginTop: 16 }}>
         <label className="field__label">{t("what_for")}</label>

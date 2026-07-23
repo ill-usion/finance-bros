@@ -190,5 +190,56 @@ def spending_analysis():
     return Response(event_stream(), mimetype="text/event-stream")
 
 
+@app.route("/process-statement", methods=['POST'])
+def process_statement():
+    """
+    Endpoint to process a bank statement in a single, non-streaming request.
+
+    Takes monthly income, weekly budget, saving percentage and a bank
+    statement file. Extracts the spendings from the statement, forecasts
+    future spendings using TimesFM (when enough history is available), and
+    rates the spending trend against the provided income/budget.
+    """
+    data = request.form
+    required_fields = ["monthly_income", "weekly_budget", "saving_percentage"]
+
+    for field in required_fields:
+        if field not in data:
+            return {"error": f"Missing required field: {field}"}, 400
+
+    if 'file' not in request.files:
+        return {"error": "No file part in the request"}, 400
+
+    statement_file = request.files['file']
+    if statement_file.filename == '':
+        return {"error": "No selected file"}, 400
+
+    statement_bytes = statement_file.read()
+
+    try:
+        monthly_income = float(data["monthly_income"])
+        weekly_budget = float(data["weekly_budget"])
+        saving_percentage = float(data["saving_percentage"])
+    except ValueError:
+        return {"error": "monthly_income, weekly_budget and saving_percentage must be numbers"}, 400
+
+    language = data.get("language", "English")
+
+    try:
+        result = asyncio.run(
+            financial_analyst_agent.invoke(
+                monthly_income=monthly_income,
+                weekly_budget=weekly_budget,
+                saving_percentage=saving_percentage,
+                statement=statement_bytes,
+                language=language,
+            )
+        )
+        return result.model_dump(), 200
+    except Exception as e:
+        return {"error": str(e)}, 500
+
+
 if __name__ == '__main__':
+
     app.run(host="0.0.0.0", debug=True)

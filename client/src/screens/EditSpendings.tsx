@@ -4,8 +4,9 @@ import { Money } from "../components/Money";
 import { Sheet } from "../components/UI";
 import { NumPad } from "../components/NumPad";
 import { CATEGORIES, type Category, type Spending } from "../lib/db";
+import { IconEdit, IconTrash } from "../components/Icons";
 
-export function EditSpendings({ back }: { back: () => void }) {
+export function EditSpendings() {
   const { spendings, editSpending, removeSpending, settings } = useStore();
   const t = useT();
   const [edit, setEdit] = useState<Spending | null>(null);
@@ -45,7 +46,6 @@ export function EditSpendings({ back }: { back: () => void }) {
   return (
     <div className="screen screen--pad-safe rise" style={{ gap: 12 }}>
       <div className="row between">
-        <button className="icon-btn" onClick={back}>‹ {t("home")}</button>
         <span className="eyebrow">{t("edit_spendings")}</span>
       </div>
 
@@ -65,8 +65,12 @@ export function EditSpendings({ back }: { back: () => void }) {
                   </div>
                   <Money amount={s.amount} size={15} bold />
                   <div className="txn__actions">
-                    <button className="txn__act" onClick={() => openEdit(s)} aria-label={t("edit")}>✎</button>
-                    <button className="txn__act txn__act--del" onClick={() => removeSpending(s.id)} aria-label={t("delete")}>🗑</button>
+                    <button className="txn__act" onClick={() => openEdit(s)} aria-label={t("edit")}>
+                      <IconEdit size={15} />
+                    </button>
+                    <button className="txn__act txn__act--del" onClick={() => removeSpending(s.id)} aria-label={t("delete")}>
+                      <IconTrash size={15} />
+                    </button>
                   </div>
                 </div>
               ))}
