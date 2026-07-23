@@ -30,16 +30,16 @@ export function CategoryRow({
         <span className="catrow__dot" style={{ background: CAT_COLORS[category] }} />
         <span className="catrow__label">{label}</span>
         <span className="catrow__amt">
-          <Money amount={spent} size={13} /> <span className="catrow__of">/ </span>
-          <Money amount={budget} size={13} muted />
+          <Money amount={spent} size={13} /> <span className="catrow__of"></span>
+          {/* <Money amount={budget} size={13} muted /> */}
         </span>
       </div>
       <div className="catrow__track">
         <div
           className="catrow__fill"
           style={{
-            width: `${pct}%`,
-            background: over ? "var(--accent)" : CAT_COLORS[category],
+            // width: `${pct}%`,
+            // background: over ? "var(--accent)" : CAT_COLORS[category],
           }}
         />
       </div>
