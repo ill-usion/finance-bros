@@ -77,6 +77,7 @@ export const en = {
   chat_empty: "Ask me anything about your spending, budget, or savings goal.",
   chat_send: "Send",
   chat_error: "Something went wrong. Please try again.",
+  logged_spending: "Logged to your spendings",
 
   // manual add
   amount: "Amount",
@@ -193,6 +194,7 @@ export const ar: typeof en = {
   chat_empty: "اسألني أي شيء عن إنفاقك، ميزانيتك، أو هدف ادخارك.",
   chat_send: "إرسال",
   chat_error: "حدث خطأ ما. حاول مرة أخرى.",
+  logged_spending: "أُضيف إلى مصروفاتك",
 
   amount: "المبلغ",
   category: "الفئة",

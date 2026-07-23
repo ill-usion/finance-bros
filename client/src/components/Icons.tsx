@@ -117,6 +117,15 @@ export function IconSend({ size, className }: IconProps) {
   );
 }
 
+export function IconCheck({ size, className }: IconProps) {
+  return (
+    <svg {...base(size)} className={className}>
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M8.4 12.3l2.4 2.4 4.8-5.2" />
+    </svg>
+  );
+}
+
 export function IconTrash({ size, className }: IconProps) {
   return (
     <svg {...base(size)} className={className}>

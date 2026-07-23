@@ -91,10 +91,19 @@ export interface ChatContext {
   categoryBreakdown?: Record<string, number>;
 }
 
+export interface LogSpendingCall {
+  name: "log_spending";
+  args: { amount: number; category: string; product: string };
+}
+
 /**
- * Streams the /chat SSE endpoint. Calls onChunk for each token as it
- * arrives. The chat history is supplied by the caller (read from the
- * client's own persisted store) and is not retained by the server.
+ * Streams the /chat SSE endpoint. Calls onChunk for each token of reply
+ * text as it arrives, and onToolCall whenever the model asks to log a
+ * spending — only ever emitted after the user has approved it in chat. The
+ * chat history is supplied by the caller (read from the client's own
+ * persisted store) and is not retained by the server; logging the spending
+ * itself is the caller's responsibility, since spending data lives in the
+ * client's own storage too.
  */
 export async function streamChat(
   params: {
@@ -102,7 +111,8 @@ export async function streamChat(
     context: ChatContext;
     language: "en" | "ar";
   },
-  onChunk: (text: string) => void
+  onChunk: (text: string) => void,
+  onToolCall?: (call: LogSpendingCall) => void
 ): Promise<void> {
   const res = await fetch(`${BASE}/chat`, {
     method: "POST",
@@ -140,13 +150,21 @@ export async function streamChat(
     for (const part of parts) {
       const line = part.trim();
       if (!line.startsWith("data:")) continue;
-      let payload: { chunk?: string; status?: string; error?: string };
+      let payload: {
+        chunk?: string;
+        tool_call?: LogSpendingCall;
+        status?: string;
+        error?: string;
+      };
       try {
         payload = JSON.parse(line.slice(5).trim());
       } catch {
         continue;
       }
       if (payload.chunk) onChunk(payload.chunk);
+      if (payload.tool_call && payload.tool_call.name === "log_spending") {
+        onToolCall?.(payload.tool_call);
+      }
       if (payload.status === "error") throw new Error(payload.error || "chat failed");
     }
   }

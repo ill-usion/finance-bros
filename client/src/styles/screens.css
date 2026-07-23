@@ -124,6 +124,15 @@
   color: var(--text);
   border-end-start-radius: 4px;
 }
+.bubble--log {
+  background: var(--good-soft);
+  border-color: var(--good);
+  padding: 10px 14px;
+}
+.logcard { display: flex; align-items: center; gap: 10px; }
+.logcard__ic { color: var(--good); flex: none; }
+.logcard__body { display: flex; flex-direction: column; gap: 2px; }
+.logcard__meta { font-size: 12px; color: var(--text-dim); }
 .bubble__typing { display: inline-flex; gap: 4px; align-items: center; padding: 2px 0; }
 .bubble__typing span {
   width: 6px; height: 6px; border-radius: 50%; background: var(--text-dim);

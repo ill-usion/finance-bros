@@ -204,7 +204,14 @@ def chat():
         week_spending, last_week_spending, category_breakdown)
       - language: "English" | "Arabic"
 
-    Streams the assistant's reply token-by-token as Server-Sent Events.
+    Streams the assistant's reply as Server-Sent Events. Each event is one
+    of:
+      {"chunk": "..."}                          — a token of reply text
+      {"tool_call": {"name": ..., "args": ...}}  — the model asking the
+          frontend to log a spending (only ever emitted after the user has
+          approved it in chat); the frontend executes it locally since
+          spending data is not stored server-side
+      {"status": "done" | "error", ...}
     """
     data = request.get_json(silent=True) or {}
 
@@ -217,14 +224,18 @@ def chat():
 
     def event_stream() -> Generator[str, None, None]:
         try:
-            for token in __iter_over_async(
+            for event in __iter_over_async(
                 financial_analyst_chat_agent.astream(
                     history=history,
                     context=context,
                     language=language,
                 )
             ):
-                yield f"data: {json.dumps({'chunk': token})}\n\n"
+                if event["type"] == "text":
+                    yield f"data: {json.dumps({'chunk': event['text']})}\n\n"
+                elif event["type"] == "tool_call":
+                    payload = {"tool_call": {"name": event["name"], "args": event["args"]}}
+                    yield f"data: {json.dumps(payload)}\n\n"
             yield f"data: {json.dumps({'status': 'done'})}\n\n"
         except Exception as e:
             yield f"data: {json.dumps({'status': 'error', 'error': str(e)})}\n\n"

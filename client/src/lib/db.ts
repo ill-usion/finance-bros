@@ -24,7 +24,7 @@ export interface Spending {
   product: string;
   /** ISO timestamp */
   at: string;
-  source: "manual" | "receipt" | "gallery";
+  source: "manual" | "receipt" | "gallery" | "assistant";
 }
 
 export interface Profile {
@@ -50,6 +50,11 @@ export interface ChatMessage {
   content: string;
   /** ISO timestamp */
   at: string;
+  /** Present when this message is a "logged spending" confirmation card rather than plain text. */
+  kind?: "log";
+  logAmount?: number;
+  logCategory?: Category;
+  logProduct?: string;
 }
 
 interface MeezanDB extends DBSchema {

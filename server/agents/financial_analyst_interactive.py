@@ -2,11 +2,20 @@ from __future__ import annotations
 
 import os
 import sys
-from typing import AsyncGenerator, Literal, TypedDict
+from typing import Any, AsyncGenerator, Literal, TypedDict
 from dotenv import load_dotenv
 
-from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage
+from langchain_core.messages import (
+    AIMessage,
+    AIMessageChunk,
+    BaseMessage,
+    HumanMessage,
+    SystemMessage,
+    ToolMessage,
+)
+from langchain_core.tools import StructuredTool
 from langchain.chat_models import init_chat_model, BaseChatModel
+from pydantic import BaseModel, Field
 
 
 sys.path.append("..")
@@ -19,6 +28,39 @@ options = load_options("options.yml")
 class ChatMessage(TypedDict):
     role: Literal["user", "assistant"]
     content: str
+
+
+SpendingCategory = Literal[
+    "Food", "Transportation", "Leisure", "Subscription", "Groceries", "Other"
+]
+
+
+class LogSpendingArgs(BaseModel):
+    amount: float = Field(description="Amount spent, in OMR, as a positive number.")
+    category: SpendingCategory = Field(description="Spending category.")
+    product: str = Field(description="Short description of what it was for, e.g. 'Lunch' or 'Taxi'.")
+
+
+def _log_spending_noop(**kwargs: Any) -> str:
+    # Never actually invoked: the tool call is intercepted in astream() and
+    # handed to the frontend, which performs the real write (spending data
+    # lives in the client's own storage, not on the server).
+    return "logged"
+
+
+LOG_SPENDING_TOOL_NAME = "log_spending"
+
+log_spending_tool = StructuredTool.from_function(
+    func=_log_spending_noop,
+    name=LOG_SPENDING_TOOL_NAME,
+    description=(
+        "Log a single spending entry to the user's budget tracker. Only call "
+        "this after the user has explicitly approved logging that specific "
+        'spending in this conversation (e.g. they replied "yes", "log it", '
+        '"go ahead").'
+    ),
+    args_schema=LogSpendingArgs,
+)
 
 
 SYSTEM_PROMPT = """
@@ -44,6 +86,24 @@ figures you were not given. Do not infer user decisions, if you are unsure, ask 
 Only use the data provided in the context. Do not make assumptions about the
 user's financial situation or spending habits beyond what is explicitly stated in the context.
 
+You also have a `log_spending` tool that records a spending entry directly
+to the user's budget tracker. Rules for using it:
+
+- When the user mentions a purchase they're making or considering (e.g. "can
+  I buy a meal for 3 OMR?"), answer their question against their remaining
+  budget first, then ask if they'd like you to log it. Do NOT call the tool
+  on this turn.
+- Only call `log_spending` after the user has clearly approved logging that
+  specific spending (e.g. "yes", "log it", "go ahead", "please do") in their
+  most recent message. Never call it speculatively, for hypothetical
+  purchases, or without an explicit approval message from the user.
+- You'll be told once the log succeeds — when that happens, reply with a
+  short, natural confirmation (e.g. "Done — logged 3 OMR for that meal under
+  Food."). You don't need to say anything else on the turn where you call
+  the tool itself.
+- Only log what the user approved. If the amount, category, or what it was
+  for is unclear, ask before calling the tool.
+
 Respond in {language}.
 """
 
@@ -63,7 +123,7 @@ Category breakdown this week: {category_breakdown}
 class FinancialAnalystInteractive:
 
     def __init__(self, llm: BaseChatModel):
-        self.llm = llm
+        self.llm = llm.bind_tools([log_spending_tool])
 
     def _build_messages(
         self,
@@ -118,23 +178,86 @@ class FinancialAnalystInteractive:
 
         return ""
 
+    async def _stream_completion(self, messages: list[BaseMessage]) -> AsyncGenerator[dict[str, Any], None]:
+        """
+        Streams one completion's text as {"type": "text", ...} events and
+        yields a final {"type": "_done", "message": AIMessage} event carrying
+        the fully-accumulated assistant message (including any tool calls).
+        """
+        full: AIMessageChunk | None = None
+        async for chunk in self.llm.astream(messages):
+            text = self._extract_text(chunk.content)
+            if text:
+                yield {"type": "text", "text": text}
+            full = chunk if full is None else full + chunk
+
+        message = AIMessage(
+            content=self._extract_text(full.content) if full else "",
+            tool_calls=full.tool_calls if full else [],
+        )
+        yield {"type": "_done", "message": message}
+
     async def astream(
         self,
         *,
         history: list[ChatMessage],
         context: dict,
         language: str = "English",
-    ) -> AsyncGenerator[str, None]:
+    ) -> AsyncGenerator[dict[str, Any], None]:
         """
-        Streams the assistant's reply token-by-token given the chat history
-        and the user's current financial context.
+        Streams the assistant's reply given the chat history and the user's
+        current financial context. Yields:
+
+          {"type": "text", "text": "..."} — a token of reply text
+          {"type": "tool_call", "name": "log_spending", "args": {...}} — the
+              model asking to log a spending, emitted once it has decided to
+              (only after the user approved it, per the system prompt)
+
+        The tool call is never executed here — spending data lives in the
+        client's own storage, so the frontend is responsible for actually
+        logging it. Once a tool call is emitted, this immediately continues
+        the conversation server-side (telling the model the log succeeded —
+        local writes are effectively always successful, so it's safe not to
+        wait on the client) and streams the model's natural confirmation as
+        more "text" events, so the agent always replies after logging.
         """
         messages = self._build_messages(history=history, context=context, language=language)
 
-        async for chunk in self.llm.astream(messages):
-            text = self._extract_text(chunk.content)
-            if text:
-                yield text
+        assistant_message: AIMessage | None = None
+        async for event in self._stream_completion(messages):
+            if event["type"] == "_done":
+                assistant_message = event["message"]
+            else:
+                yield event
+
+        if assistant_message is None:
+            return
+
+        log_calls = [
+            call for call in assistant_message.tool_calls if call.get("name") == LOG_SPENDING_TOOL_NAME
+        ]
+        if not log_calls:
+            return
+
+        for call in log_calls:
+            yield {"type": "tool_call", "name": LOG_SPENDING_TOOL_NAME, "args": call["args"]}
+
+        messages.append(assistant_message)
+        for call in log_calls:
+            args = call["args"]
+            messages.append(
+                ToolMessage(
+                    tool_call_id=call["id"],
+                    content=(
+                        f"Logged {args.get('amount')} OMR for "
+                        f"\"{args.get('product')}\" under {args.get('category')}."
+                    ),
+                )
+            )
+
+        async for event in self._stream_completion(messages):
+            if event["type"] != "_done":
+                yield event
 
 
 def make_agent(temperature: float = 0.6) -> FinancialAnalystInteractive:
