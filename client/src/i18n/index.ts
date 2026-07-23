@@ -68,6 +68,15 @@ export const en = {
   settings: "Settings",
   user_guide: "User guide",
   adjust_budget: "Adjust budget",
+  advisor: "Advisor",
+
+  // financial advisor / chat
+  advisor_title: "Financial Advisor",
+  this_week: "This week",
+  chat_placeholder: "Ask about your budget…",
+  chat_empty: "Ask me anything about your spending, budget, or savings goal.",
+  chat_send: "Send",
+  chat_error: "Something went wrong. Please try again.",
 
   // manual add
   amount: "Amount",
@@ -176,6 +185,14 @@ export const ar: typeof en = {
   settings: "الإعدادات",
   user_guide: "دليل الاستخدام",
   adjust_budget: "تعديل الميزانية",
+  advisor: "المستشار",
+
+  advisor_title: "المستشار المالي",
+  this_week: "هذا الأسبوع",
+  chat_placeholder: "اسأل عن ميزانيتك…",
+  chat_empty: "اسألني أي شيء عن إنفاقك، ميزانيتك، أو هدف ادخارك.",
+  chat_send: "إرسال",
+  chat_error: "حدث خطأ ما. حاول مرة أخرى.",
 
   amount: "المبلغ",
   category: "الفئة",

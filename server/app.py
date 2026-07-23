@@ -3,7 +3,7 @@ import asyncio
 from typing import Any
 from uuid import uuid4
 from collections.abc import Generator
-from agents import financial_analyst, receipt_extractor, statement_extractor, forecaster
+from agents import financial_analyst, financial_analyst_interactive, receipt_extractor, statement_extractor, forecaster
 
 from flask import Flask, request, session, g, make_response, render_template, Response
 from flask_cors import CORS
@@ -11,6 +11,7 @@ from flask_cors import CORS
 receipt_ext = receipt_extractor.make_extractor()
 statement_ext = statement_extractor.make_extractor()
 financial_analyst_agent = financial_analyst.make_agent()
+financial_analyst_chat_agent = financial_analyst_interactive.make_agent()
 
 app = Flask(__name__)
 app.secret_key = "<CHANGE THIS>"
@@ -184,6 +185,47 @@ def spending_analysis():
                 else:
                     payload = update
                 yield f"data: {json.dumps(payload)}\n\n"
+        except Exception as e:
+            yield f"data: {json.dumps({'status': 'error', 'error': str(e)})}\n\n"
+
+    return Response(event_stream(), mimetype="text/event-stream")
+
+
+@app.route("/chat", methods=['POST'])
+def chat():
+    """
+    Endpoint to chat with the interactive financial analyst.
+
+    Expects JSON with:
+      - messages: list of {"role": "user"|"assistant", "content": str} — the
+        chat history, persisted and sent by the client (not stored server-side)
+      - context: dict with the student's current financial snapshot
+        (monthly_income, weekly_budget, saving_percentage, today_spending,
+        week_spending, last_week_spending, category_breakdown)
+      - language: "English" | "Arabic"
+
+    Streams the assistant's reply token-by-token as Server-Sent Events.
+    """
+    data = request.get_json(silent=True) or {}
+
+    if "messages" not in data or not isinstance(data["messages"], list):
+        return {"error": "Missing required field: messages"}, 400
+
+    history = data["messages"]
+    context = data.get("context") or {}
+    language = data.get("language", "English")
+
+    def event_stream() -> Generator[str, None, None]:
+        try:
+            for token in __iter_over_async(
+                financial_analyst_chat_agent.astream(
+                    history=history,
+                    context=context,
+                    language=language,
+                )
+            ):
+                yield f"data: {json.dumps({'chunk': token})}\n\n"
+            yield f"data: {json.dumps({'status': 'done'})}\n\n"
         except Exception as e:
             yield f"data: {json.dumps({'status': 'error', 'error': str(e)})}\n\n"
 

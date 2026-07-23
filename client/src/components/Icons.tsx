@@ -99,6 +99,24 @@ export function IconEdit({ size, className }: IconProps) {
   );
 }
 
+export function IconChat({ size, className }: IconProps) {
+  return (
+    <svg {...base(size)} className={className}>
+      <path d="M4 6.8A2.3 2.3 0 0 1 6.3 4.5h11.4A2.3 2.3 0 0 1 20 6.8v7.4a2.3 2.3 0 0 1-2.3 2.3H9.6l-4 3.3v-3.3H6.3A2.3 2.3 0 0 1 4 14.2Z" />
+      <path d="M8.3 8.6h7.4M8.3 11.6h4.8" />
+    </svg>
+  );
+}
+
+export function IconSend({ size, className }: IconProps) {
+  return (
+    <svg {...base(size)} className={className}>
+      <path d="M4.5 12 19.5 4.5 15 19.5l-3.6-6.3-6.9-1.2Z" />
+      <path d="M11.4 13.2 19.5 4.5" />
+    </svg>
+  );
+}
+
 export function IconTrash({ size, className }: IconProps) {
   return (
     <svg {...base(size)} className={className}>

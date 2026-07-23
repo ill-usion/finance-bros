@@ -4,6 +4,7 @@ import { LanguagePick } from "./screens/LanguagePick";
 import { Onboarding } from "./screens/Onboarding";
 import { Home } from "./screens/Home";
 import { EditSpendings } from "./screens/EditSpendings";
+import { FinancialAdvisor } from "./screens/FinancialAdvisor";
 import { Settings } from "./screens/Settings";
 import { Guide } from "./screens/Guide";
 import { NavBar, type Page } from "./components/NavBar";
@@ -35,6 +36,8 @@ export default function App() {
     content = <Home />;
   } else if (page === "edit") {
     content = <EditSpendings />;
+  } else if (page === "advisor") {
+    content = <FinancialAdvisor />;
   } else if (page === "settings") {
     content = <Settings />;
   } else {

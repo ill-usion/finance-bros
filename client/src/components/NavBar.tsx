@@ -1,13 +1,14 @@
 import { useT } from "../lib/store";
-import { IconHome, IconList, IconGuide, IconSettings } from "./Icons";
+import { IconHome, IconList, IconGuide, IconSettings, IconChat } from "./Icons";
 
-export type Page = "home" | "edit" | "settings" | "guide";
+export type Page = "home" | "edit" | "advisor" | "settings" | "guide";
 
 export function NavBar({ page, go }: { page: Page; go: (p: Page) => void }) {
   const t = useT();
   const items: { key: Page; label: string; Icon: typeof IconHome }[] = [
     { key: "home", label: t("home"), Icon: IconHome },
     { key: "edit", label: t("edit_spendings"), Icon: IconList },
+    { key: "advisor", label: t("advisor"), Icon: IconChat },
     { key: "guide", label: t("user_guide"), Icon: IconGuide },
     { key: "settings", label: t("settings"), Icon: IconSettings },
   ];

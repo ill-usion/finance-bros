@@ -44,6 +44,14 @@ export interface Settings {
   onboarded: boolean;
 }
 
+export interface ChatMessage {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  /** ISO timestamp */
+  at: string;
+}
+
 interface MeezanDB extends DBSchema {
   profile: { key: string; value: Profile };
   settings: { key: string; value: Settings };
@@ -52,10 +60,15 @@ interface MeezanDB extends DBSchema {
     value: Spending;
     indexes: { "by-at": string };
   };
+  chatMessages: {
+    key: string;
+    value: ChatMessage;
+    indexes: { "by-at": string };
+  };
 }
 
 const DB_NAME = "meezan";
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 let dbPromise: Promise<IDBPDatabase<MeezanDB>> | null = null;
 
@@ -71,6 +84,12 @@ function db() {
         }
         if (!database.objectStoreNames.contains("spendings")) {
           const store = database.createObjectStore("spendings", {
+            keyPath: "id",
+          });
+          store.createIndex("by-at", "at");
+        }
+        if (!database.objectStoreNames.contains("chatMessages")) {
+          const store = database.createObjectStore("chatMessages", {
             keyPath: "id",
           });
           store.createIndex("by-at", "at");
@@ -138,4 +157,21 @@ export async function wipeAll(): Promise<void> {
   await d.clear("profile");
   await d.clear("spendings");
   await d.clear("settings");
+  await d.clear("chatMessages");
+}
+
+// ---- Chat messages ----
+// Persisted per-user in the browser's IndexedDB, never sent to or stored by
+// the server — the server only receives the history as part of a request.
+export async function allChatMessages(): Promise<ChatMessage[]> {
+  // oldest first, chronological order for chat display
+  return (await db()).getAllFromIndex("chatMessages", "by-at");
+}
+
+export async function addChatMessage(m: ChatMessage): Promise<void> {
+  await (await db()).put("chatMessages", m);
+}
+
+export async function updateChatMessage(m: ChatMessage): Promise<void> {
+  await (await db()).put("chatMessages", m);
 }

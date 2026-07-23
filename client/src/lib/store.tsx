@@ -17,10 +17,14 @@ import {
   addSpending,
   updateSpending,
   deleteSpending,
+  allChatMessages,
+  addChatMessage,
+  updateChatMessage,
   wipeAll,
   type Settings,
   type Profile,
   type Spending,
+  type ChatMessage,
   DEFAULT_SETTINGS,
 } from "./db";
 
@@ -29,6 +33,7 @@ interface Ctx {
   settings: Settings;
   profile: Profile | undefined;
   spendings: Spending[];
+  chatMessages: ChatMessage[];
   setLanguage: (l: "en" | "ar") => Promise<void>;
   setTheme: (t: "light" | "dark") => Promise<void>;
   completeOnboarding: (p: Profile) => Promise<void>;
@@ -36,6 +41,8 @@ interface Ctx {
   logSpending: (s: Spending) => Promise<void>;
   editSpending: (s: Spending) => Promise<void>;
   removeSpending: (id: string) => Promise<void>;
+  addChatMsg: (m: ChatMessage) => Promise<void>;
+  editChatMsg: (m: ChatMessage) => Promise<void>;
   resetAll: () => Promise<void>;
 }
 
@@ -46,18 +53,21 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
   const [profile, setProfile] = useState<Profile | undefined>();
   const [spendings, setSpendings] = useState<Spending[]>([]);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
 
   useEffect(() => {
     (async () => {
       const s = await getSettings();
       const p = await getProfile();
       const sp = await allSpendings();
+      const cm = await allChatMessages();
       i18n.changeLanguage(s.language);
       applyDirection(s.language);
       document.documentElement.setAttribute("data-theme", s.theme);
       setSettings(s);
       setProfile(p);
       setSpendings(sp);
+      setChatMessages(cm);
       setReady(true);
     })();
   }, []);
@@ -107,10 +117,21 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setSpendings(await allSpendings());
   }, []);
 
+  const addChatMsg = useCallback(async (m: ChatMessage) => {
+    await addChatMessage(m);
+    setChatMessages((prev) => [...prev, m]);
+  }, []);
+
+  const editChatMsg = useCallback(async (m: ChatMessage) => {
+    await updateChatMessage(m);
+    setChatMessages((prev) => prev.map((x) => (x.id === m.id ? m : x)));
+  }, []);
+
   const resetAll = useCallback(async () => {
     await wipeAll();
     setProfile(undefined);
     setSpendings([]);
+    setChatMessages([]);
     const s = { ...DEFAULT_SETTINGS };
     await saveSettings(s);
     setSettings(s);
@@ -126,6 +147,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         settings,
         profile,
         spendings,
+        chatMessages,
         setLanguage,
         setTheme,
         completeOnboarding,
@@ -133,6 +155,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         logSpending,
         editSpending,
         removeSpending,
+        addChatMsg,
+        editChatMsg,
         resetAll,
       }}
     >
