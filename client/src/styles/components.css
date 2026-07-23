@@ -52,7 +52,6 @@
   background: var(--surface-2); overflow: hidden;
 }
 .slider__fill { height: 100%; background: var(--accent); border-radius: 99px; }
-html[dir="rtl"] .slider__fill { margin-inline-start: auto; }
 .slider input[type="range"] {
   position: absolute; inset-inline: 0; width: 100%; margin: 0;
   -webkit-appearance: none; appearance: none; background: transparent; height: 40px;
@@ -94,7 +93,21 @@ html[dir="rtl"] .slider__fill { margin-inline-start: auto; }
 }
 .seg__opt--on { background: var(--surface); color: var(--text); box-shadow: var(--shadow-sm); }
 
+/* ---- Analyzing (receipt processing) ---- */
+.analyzing {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 180px;
+}
+.analyzing__box {
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: var(--r-md); padding: 28px 32px;
+  text-align: center;
+}
+.analyzing__text { margin: 0; font-size: 14px; font-weight: 600; color: var(--text-dim); }
+
 /* ---- Field ---- */
+
 .field { display: flex; flex-direction: column; gap: 7px; margin-bottom: 14px; }
 .field__label { font-size: 13px; font-weight: 600; color: var(--text-dim); }
 .field__input {

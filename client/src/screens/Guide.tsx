@@ -8,7 +8,7 @@ const KEYS = [
   { t: "guide_4_t", b: "guide_4_b" },
 ];
 
-export function Guide({ back }: { back: () => void }) {
+export function Guide() {
   const t = useT();
   const [i, setI] = useState(0);
   const g = KEYS[i];
@@ -17,7 +17,6 @@ export function Guide({ back }: { back: () => void }) {
   return (
     <div className="screen screen--pad-safe rise" style={{ gap: 16 }}>
       <div className="row between">
-        <button className="icon-btn" onClick={back}>‹ {t("home")}</button>
         <span className="eyebrow">{t("guide_title")}</span>
       </div>
 
@@ -36,7 +35,7 @@ export function Guide({ back }: { back: () => void }) {
       <div className="row" style={{ gap: 10 }}>
         <button className="btn btn--ghost" disabled={i === 0} onClick={() => setI((x) => x - 1)}>{t("back")}</button>
         {last ? (
-          <button className="btn btn--primary btn--block" onClick={back}>{t("done")}</button>
+          <button className="btn btn--primary btn--block" onClick={() => setI(0)}>{t("done")}</button>
         ) : (
           <button className="btn btn--primary btn--block" onClick={() => setI((x) => x + 1)}>{t("next")}</button>
         )}

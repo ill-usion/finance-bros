@@ -1,7 +1,7 @@
 import { useStore, useT } from "../lib/store";
 import { Segmented } from "../components/UI";
 
-export function Settings({ back }: { back: () => void }) {
+export function Settings() {
   const { settings, setLanguage, setTheme, resetAll } = useStore();
   const t = useT();
 
@@ -14,7 +14,6 @@ export function Settings({ back }: { back: () => void }) {
   return (
     <div className="screen screen--pad-safe rise" style={{ gap: 16 }}>
       <div className="row between">
-        <button className="icon-btn" onClick={back}>‹ {t("home")}</button>
         <span className="eyebrow">{t("settings")}</span>
       </div>
 
