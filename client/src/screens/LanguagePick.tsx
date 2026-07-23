@@ -25,10 +25,10 @@ function OmanFlag() {
         <rect y="10" width="60" height="10" fill="#db161b" />
         <rect y="20" width="60" height="10" fill="#008000" />
         <rect width="18" height="30" fill="#db161b" />
-        <g stroke="#fff" strokeWidth="1.4" fill="none">
+        {/* <g stroke="#fff" strokeWidth="1.4" fill="none">
           <path d="M9 6 l0 8 M6 9 l6 0" />
           <path d="M6.5 8 q2.5 3 5 0" />
-        </g>
+        </g> */}
       </g>
     </svg>
   );
